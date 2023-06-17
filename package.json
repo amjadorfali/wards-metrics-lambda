@@ -1,0 +1,29 @@
+{
+  "name": "aws-lambda-metric-service",
+  "version": "1.0.0",
+  "description": "Serverless Framework Node SQS Producer-Consumer on AWS",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "start": "ts-node -P ./tsconfig.json --files src/ src/index.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.350.0",
+    "@types/aws-sdk": "^2.7.0",
+    "@types/axios": "^0.14.0",
+    "aws-sdk": "^2.1396.0",
+    "axios": "^1.4.0",
+    "pg": "^8.11.0",
+    "pg-hstore": "^2.3.4"
+  },
+  "devDependencies": {
+    "@serverless/typescript": "^3.30.1",
+    "@types/aws-lambda": "^8.10.117",
+    "@types/node": "^16.4.3",
+    "serverless-lift": "^1.1.2",
+    "serverless-plugin-typescript": "^2.1.5",
+    "ts-node": "^10.7.0",
+    "typescript": "^5.1.3"
+  }
+}
