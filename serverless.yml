@@ -1,4 +1,4 @@
-service: aws-lambda-metric-service
+service: metric-lambda
 frameworkVersion: '3'
 
 provider:
@@ -14,8 +14,14 @@ constructs:
 functions:
   producer:
     handler: src/functions/processHealthMetric
-    environment:
-      QUEUE_URL: ${construct:jobs.queueUrl}
+    events:
+      - sqs:
+          arn: arn:aws:sqs:eu-central-1:923494038643:PROD_METRIC_HEALTH_CHECK
+          batchSize: 10
+          maximumBatchingWindow: 60
+          functionResponseType: ReportBatchItemFailures
+
 
 plugins:
   - serverless-lift
+  - serverless-plugin-typescript

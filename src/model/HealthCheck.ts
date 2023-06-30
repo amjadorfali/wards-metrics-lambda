@@ -1,46 +1,74 @@
+/**
+ * Model User
+ *
+ */
+export type User = {
+  id: number
+  subId: string
+  phoneNumber: string
+  email: string
+}
+
+/**
+ * Model Team
+ *
+ */
+export type Team = {
+  id: number
+  name: string
+}
+
+/**
+ * Model Incident
+ *
+ */
+export type Incident = {
+  id: number
+  status: IncidentStatus
+  startedAt: Date
+  cause: string
+  userId: number | null
+  teamId: number
+  healthCheckId: string
+}
+
+/**
+ * Model HealthCheck
+ *
+ */
 export type HealthCheck = {
   id: string
-  userId: string
   name: string
   method: Method
   timeout: number | null
-  verifySSL: boolean
   enabled: boolean
-  type: HealtCheckType
+  type: HealthCheckType
   inProgress: boolean
-  interval: number | null
+  interval: number
   lastChecked: Date
   url: string
   locations: Location[]
+  port: number | null
   createdAt: Date
   updatedAt: Date
-  headers: Header[]
-  assertions: Assertion[]
+  teamId: number
+  assertionId: number | null
+  metadata: HealthTaskMetadata
+  httpUserName: string | null
+  httpPassword: string | null
+  headers: { key: string, value: string } | null
+  assertions: Assertion[] | null
+  requestBody: Object | null
+  verifySSL: boolean
 
 }
 
 /**
- * Model Assertion
+ * Model HealthTaskMetadata
  *
  */
-export type Assertion = {
+export type HealthTaskMetadata = {
   id: number
-  type: AssertionType
-  key: string
-  value: string
-  compareType: CompareType
-  healthCheckId: string | null
-}
-
-/**
- * Model Header
- *
- */
-export type Header = {
-  id: number
-  type: string
-  value: string
-  healthCheckId: string | null
 }
 
 
@@ -51,40 +79,26 @@ export type Header = {
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
-export let AssertionType: {
-  RESPONSE_TIME: 'RESPONSE_TIME',
-  RESPONSE_CODE: 'RESPONSE_CODE',
-  RESPONSE_BODY: 'RESPONSE_BODY',
-  RESPONSE_JSON: 'RESPONSE_JSON',
-  RESPONSE_HEADER: 'RESPONSE_HEADER',
-  SSL_CERTIFICATE_EXPIRES_IN: 'SSL_CERTIFICATE_EXPIRES_IN'
-};
-
-export type AssertionType = (typeof AssertionType)[keyof typeof AssertionType]
-
-
-export let CompareType: {
-  SMALL: 'SMALL',
-  BIG: 'BIG',
-  SMALL_EQUAL: 'SMALL_EQUAL',
-  BIG_EQUAL: 'BIG_EQUAL',
-  DOES_NOT_CONTAIN: 'DOES_NOT_CONTAIN',
-  EQUAL: 'EQUAL',
-  NOT_EQUAL: 'NOT_EQUAL'
-};
-
-export type CompareType = (typeof CompareType)[keyof typeof CompareType]
-
-
-export let HealtCheckType: {
+export let HealthCheckType: {
   SWITCH: 'SWITCH',
   HTTP: 'HTTP',
-  BROWSER: 'BROWSER',
+  SMTP: 'SMTP',
+  POP3: 'POP3',
+  IMAP: 'IMAP',
   TCP: 'TCP',
   UDP: 'UDP'
 };
 
-export type HealtCheckType = (typeof HealtCheckType)[keyof typeof HealtCheckType]
+export type HealthCheckType = (typeof HealthCheckType)[keyof typeof HealthCheckType]
+
+
+export let IncidentStatus: {
+  ONGOING: 'ONGOING',
+  RESOLVED: 'RESOLVED',
+  ACKNOWLEDGED: 'ACKNOWLEDGED'
+};
+
+export type IncidentStatus = (typeof IncidentStatus)[keyof typeof IncidentStatus]
 
 
 export let Location: {
@@ -111,3 +125,46 @@ export let Method: {
 };
 
 export type Method = (typeof Method)[keyof typeof Method]
+export type Assertion = {
+  id: number
+  type: AssertionType
+  value: string
+  compareType: CompareType
+  healthCheckId: string | null
+}
+
+export type Header = {
+  id: number
+  type: string
+  value: string
+  healthCheckId: string | null
+}
+export let CompareType: {
+  SMALL: 'SMALL',
+  BIG: 'BIG',
+  SMALL_EQUAL: 'SMALL_EQUAL',
+  BIG_EQUAL: 'BIG_EQUAL'
+  EQUAL: "EQUAL"
+  DOES_NOT_CONTAIN: "DOES_NOT_CONTAIN",
+  NOT_EQUAL: "NOT_EQUAL"
+  CONTAINS: "CONTAINS"
+};
+
+export type CompareType = (typeof CompareType)[keyof typeof CompareType]
+
+
+export let AssertionType: {
+  RESPONSE_TIME: "RESPONSE_TIME",
+  RESPONSE_CODE: "RESPONSE_CODE",
+  RESPONSE_BODY: "RESPONSE_BODY",
+  RESPONSE_JSON: "RESPONSE_JSON",
+  RESPONSE_HEADER: "RESPONSE_HEADER",
+  SSL_CERTIFICATE_EXPIRES_IN: "SSL_CERTIFICATE_EXPIRES_IN",
+}
+
+export type AssertionType = (typeof AssertionType)[keyof typeof AssertionType]
+export const Status = {
+  SUCCESS: 0,
+  ASSERTION_FAILED: 1,
+  ERROR: 2
+}

@@ -1,32 +1,33 @@
-import {ProcessHealthMetricService} from "../../service/ProcessHealthMetricService";
 import {SQSEvent} from "aws-lambda";
 import {HealthCheck} from "../../model/HealthCheck";
-import {DataType, getAssertionFunc} from "../../service/AssertionService";
-import {sendRequest} from "../../api/axios";
-
+import {checkHTTP} from "../../helpers/checks/checkHTTP";
+import {checkTCPPort} from "../../helpers/checks/checkTCPPort";
 
 export const processTask = async (event: SQSEvent) => {
   const task: HealthCheck = JSON.parse(event.Records[0].body)
-  const response = await sendRequest(task)
-  let data: DataType = {
-    hasSSL: false,
-    responseBody: "",
-    responseCode: 0,
-    responseHeader: "",
-    responseJson: "",
-    responseTime: 0
+  const location = event.Records[0].awsRegion
+  if (task.type === "HTTP") {
+    await checkHTTP(task, location)
   }
-  for (let i = 0; i < task.assertions.length; i++) {
-    const assertionFunc = getAssertionFunc[task.assertions[i].type]
-    data = {
-      ...data,
-      ...assertionFunc(response, task.assertions[i])
-    }
-  }
-
-  console.log(data)
-
 }
-const postMetric = () => {
 
+const getRequest = async (task: HealthCheck) => {
+  let response: { response: string; responseTime: number } | undefined
+  switch (task.type) {
+    case "POP3":
+      response = await checkTCPPort(task.port || 80, task.url, task.timeout || 5)
+      break;
+    case "SMTP":
+      response = await checkTCPPort(task.port || 80, task.url, task.timeout || 5)
+      break;
+    case "IMAP":
+      response = await checkTCPPort(task.port || 80, task.url, task.timeout || 5)
+      break;
+    case "TCP":
+      response = await checkTCPPort(task.port || 80, task.url, task.timeout || 5)
+      break;
+    case "UDP":
+      break;
+  }
+  return response
 }
