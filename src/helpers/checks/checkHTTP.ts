@@ -3,6 +3,7 @@ import {HealthCheck, Status} from "../../model/HealthCheck";
 import {DataType, getHttpAssertionFunc} from "../../service/AssertionService";
 import _ from "lodash";
 import {postMetric, postMetricError} from "../../db";
+import https from "https";
 
 
 export const checkHTTP = async (task: HealthCheck, location: string) => {
@@ -20,7 +21,7 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
         for (let i = 0; i < assertions.length; i++) {
           const {type} = assertions[i];
           const assertionFunc = getHttpAssertionFunc[type]
-          const assertionResult = assertionFunc(response, assertions[i], responseTime)
+          const assertionResult = assertionFunc({response, assertion: assertions[i], responseTime, url: task.url})
           if (assertionResult.isAssertionFailed) {
             sendNotification = true
             isAssertionFailed = true
@@ -35,6 +36,7 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
   }
 }
 const sendRequest: (task: HealthCheck) => Promise<{ response: AxiosResponse; responseTime: number } | undefined> = async (task: HealthCheck) => {
+
   let axiosRequestConfig: AxiosRequestConfig = {
     method: task.method,
     url: task.url,
@@ -56,6 +58,11 @@ const sendRequest: (task: HealthCheck) => Promise<{ response: AxiosResponse; res
     if (task.requestBody !== null) {
       axiosRequestConfig = {...axiosRequestConfig, data: task.requestBody}
 
+    }
+    if (task.verifySSL) {
+      const agent = new https.Agent({rejectUnauthorized: false});
+
+      axiosRequestConfig.httpsAgent = agent
     }
   }
   const start = performance.now();

@@ -69,6 +69,12 @@ export type HealthCheck = {
  */
 export type HealthTaskMetadata = {
   id: number
+  httpUserName: string | null
+  httpPassword: string | null
+  headers: Object | null
+  assertions: Object | null
+  requestBody: Object | null
+  verifySSL: boolean
 }
 
 
@@ -128,8 +134,9 @@ export type Method = (typeof Method)[keyof typeof Method]
 export type Assertion = {
   id: number
   type: AssertionType
-  value: string
+  value: any
   compareType: CompareType
+  key: string
   healthCheckId: string | null
 }
 

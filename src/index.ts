@@ -2,7 +2,7 @@ import {processTask} from './functions/processHealthMetric/processHealthMetric';
 import {SQSEvent} from 'aws-lambda';
 
 async function test() {
-  const task: string = '{"id":1,"name":"task-1","method":"GET","timeout":1230,"enabled":true,"locations":"{IRELAND}","createdAt":"2023-06-28T10:57:58.267Z","updatedAt":"2023-06-28T10:57:58.268Z","inProgress":false,"lastChecked":"2023-06-28T10:57:54.002Z","url":"https://amjadorfali.com/","teamId":1,"type":"HTTP","assertionId":1,"port":null,"interval":300,"httpUserName":null,"httpPassword":null,"headers":{"type":"asd","value":"asd"},"assertions":[{"type":"RESPONSE_CODE","value":"200","compareType":"EQUAL"}],"requestBody":null,"verifySSL":false}'
+  const task: string = '{"id":9,"name":"task-5","method":"GET","timeout":123000,"enabled":true,"locations":"{IRELAND}","createdAt":"2023-06-30T11:11:30.046Z","updatedAt":"2023-06-30T11:11:30.047Z","inProgress":false,"lastChecked":"2023-06-30T11:11:30.043Z","url":"http://localhost:8700/api/health-check","teamId":1,"type":"HTTP","assertionId":9,"port":null,"interval":300,"httpUserName":null,"httpPassword":null,"headers":{"type":"asd","value":"asd"},"assertions":[{"value":[200,300,100],"type":"RESPONSE_CODE"},{"value":"2000","type":"RESPONSE_TIME"},{"value":123,"key":"arrTest[0].childArr","type":"RESPONSE_JSON"}],"requestBody":null,"verifySSL":false}'
   const sqsRecord: SQSEvent = {
     Records: [{
       body: task,
