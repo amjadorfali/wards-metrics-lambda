@@ -24,6 +24,7 @@
     "@types/aws-lambda": "^8.10.117",
     "@types/node": "^16.18.37",
     "@types/pg": "^8.10.2",
+    "prettier": "^3.0.0",
     "serverless-lift": "^1.1.2",
     "serverless-plugin-typescript": "^2.1.5",
     "ts-node": "^10.7.0",
