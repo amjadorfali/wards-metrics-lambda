@@ -51,44 +51,61 @@ const assertResponseCode = ({
                               assertion,
                             }: { response: AxiosResponse<any, any>, assertion: Assertion, responseTime?: number, url?: string }): { responseCode: number, isAssertionFailed: boolean } => {
   const assertionObj = {responseCode: response.status}
+    const responseData =  response.status
 
-  if (typeof assertion.value === "object") {
-    return {
-      ...assertionObj, isAssertionFailed: !assertion.value.includes(response.status)
+    if (typeof assertion.value === "number") {
+        switch (assertion.compareType) {
+            case "EQUAL":
+                return {...assertionObj, isAssertionFailed: assertion.value === responseData}
+            case "NOT_EQUAL":
+                return {...assertionObj, isAssertionFailed: assertion.value !== responseData}
+            case "SMALL":
+                return {...assertionObj, isAssertionFailed: responseData < assertion.value}
+            case "SMALL_EQUAL":
+                return {...assertionObj, isAssertionFailed: responseData <= assertion.value}
+            case "BIG":
+                return {...assertionObj, isAssertionFailed: responseData > assertion.value}
+            case "BIG_EQUAL":
+                return {...assertionObj, isAssertionFailed: responseData >= assertion.value}
+            default:
+                return {...assertionObj, isAssertionFailed: assertion.value === responseData}
+        }
+    } else {
+        throw new Error("AssertionValInvalid")
     }
-  } else {
-    throw new Error("AssertionValInvalid")
-  }
 }
 const assertResponseHeader = ({
                                 response,
                                 assertion,
-                              }: { response: AxiosResponse<any, any>, assertion: Assertion, responseTime?: number, url?: string }): { responseHeader: string, isAssertionFailed: boolean } => {
-  return {responseHeader: response.data, isAssertionFailed: response.headers[assertion.key] === assertion.value}
-  // if (typeof assertion.value === "string") {
-   // switch (assertion.compareType) {
-    //   case "EQUAL":
-    //     return {...assertionObj, isAssertionFailed: assertion.value === responseData}
-    //   case "NOT_EQUAL":
-    //     return {...assertionObj, isAssertionFailed: assertion.value !== responseData}
-    //   case "DOES_NOT_CONTAIN":
-    //     return {...assertionObj, isAssertionFailed: !responseData.includes(assertion.value)}
-    //   case "CONTAINS":
-    //     return {...assertionObj, isAssertionFailed: responseData.includes(assertion.value)}
-    //   case "SMALL":
-    //     return {...assertionObj, isAssertionFailed: headerVal < assertion.value}
-    //   case "SMALL_EQUAL":
-    //     return {...assertionObj, isAssertionFailed: headerVal <= assertion.value}
-    //   case "BIG":
-    //     return {...assertionObj, isAssertionFailed: headerVal > assertion.value}
-    //   case "BIG_EQUAL":
-    //     return {...assertionObj, isAssertionFailed: headerVal >= assertion.value}
-    //   default:
-    //     return {...assertionObj, isAssertionFailed: responseData.includes(assertion.value)}
-    // }
-  // } else {
-  //   throw new Error("AssertionValInvalid")
-  // }
+                              }: { response: AxiosResponse<any, any>, assertion: Assertion, responseTime?: number, url?: string }): { responseHeader: Object, isAssertionFailed: boolean } => {
+
+    const assertionObj = {responseHeader: response.headers}
+    const responseData =  response.headers[assertion.key]
+  if (typeof assertion.value === "string") {
+   switch (assertion.compareType) {
+      case "EQUAL":
+        return {...assertionObj, isAssertionFailed: assertion.value === responseData}
+      case "NOT_EQUAL":
+        return {...assertionObj, isAssertionFailed: assertion.value !== responseData}
+      case "DOES_NOT_CONTAIN":
+        return {...assertionObj, isAssertionFailed: !responseData.includes(assertion.value)}
+      case "CONTAINS":
+        return {...assertionObj, isAssertionFailed: responseData.includes(assertion.value)}
+      case "SMALL":
+        return {...assertionObj, isAssertionFailed: responseData < assertion.value}
+      case "SMALL_EQUAL":
+        return {...assertionObj, isAssertionFailed: responseData <= assertion.value}
+      case "BIG":
+        return {...assertionObj, isAssertionFailed: responseData > assertion.value}
+      case "BIG_EQUAL":
+        return {...assertionObj, isAssertionFailed: responseData >= assertion.value}
+      default:
+        return {...assertionObj, isAssertionFailed: responseData.includes(assertion.value)}
+    }
+  } else {
+    throw new Error("AssertionValInvalid")
+  }
+
 }
 const assertSSLCertificate = ({
                                 response,

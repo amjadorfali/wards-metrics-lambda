@@ -39,7 +39,7 @@ export const postMetric = async (
 		healthMetric.id,
 		date,
 		Math.floor(responseTime),
-		0, // Status success
+		1, // Status success
 		'US' //location
 	]);
 };

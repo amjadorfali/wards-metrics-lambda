@@ -12,7 +12,7 @@ const testObj = {
 	updatedAt: '2023-06-30T11:11:30.047Z',
 	inProgress: false,
 	lastChecked: '2023-06-30T11:11:30.043Z',
-	url: 'https://amjadorfali.com',
+	url: 'https://localhost:8070/api/health-check',
 	teamId: 1,
 	type: 'HTTP',
 	assertionId: 9,

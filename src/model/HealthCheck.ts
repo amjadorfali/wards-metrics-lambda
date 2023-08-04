@@ -127,7 +127,6 @@ export let Method: {
 
 export type Method = (typeof Method)[keyof typeof Method];
 export type Assertion = {
-	id: number;
 	type: AssertionType;
 	value: any;
 	compareType: CompareType;
@@ -137,7 +136,7 @@ export type Assertion = {
 
 export type Header = {
 	id: number;
-	type: string;
+	key: string;
 	value: string;
 	healthCheckId: string | null;
 };
