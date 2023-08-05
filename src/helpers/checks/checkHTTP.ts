@@ -1,50 +1,77 @@
-import axios, { AxiosResponse, AxiosRequestConfig } from 'axios';
+import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios';
 import { HealthCheck, Status } from '../../model/HealthCheck';
-import { DataType, getHttpAssertionFunc } from '../../service/AssertionService';
+import { AssertionFnOptions, DataType, getHttpAssertionFunc } from '../../service/AssertionService';
 import _ from 'lodash';
 import { postMetric, postMetricError } from '../../db';
 import https from 'https';
-
+import * as tls from 'tls';
+import get from 'lodash/get';
 export const checkHTTP = async (task: HealthCheck, location: string) => {
 	const startingDate = new Date();
-	try {
-		const respond = await sendRequest(task);
 
-		if (respond) {
-			const { response, responseTime } = respond;
-			let data: DataType[] = [];
-			let sendNotification = false;
-			let isAssertionFailed = false;
-			if (!_.isEmpty(task.assertions) && task.assertions !== null) {
-				const assertions = task.assertions;
-				for (let i = 0; i < assertions.length; i++) {
-					const { type } = assertions[i];
-					const assertionFunc = getHttpAssertionFunc[type];
-					const assertionResult = assertionFunc({ response, assertion: assertions[i], responseTime, url: task.url });
-					if (assertionResult.isAssertionFailed) {
-						sendNotification = true;
-						isAssertionFailed = true;
-					}
-					data.push(assertionResult);
-				}
-			}
-			await postMetric(
-				task,
-				location,
-				startingDate,
-				data,
-				isAssertionFailed ? Status.ASSERTION_FAILED : Status.SUCCESS,
-				response.status,
-				responseTime
-			);
-		}
+	try {
+		var respond = await sendRequest(task);
 	} catch (err: any) {
-		await postMetricError(task, startingDate, Status.ERROR, err.responseCode, err.response);
+		const error = err as AxiosError;
+		await postMetricError(
+			task,
+			startingDate,
+			Status.ERROR,
+			error.response?.status ?? 500,
+			error.message,
+			location,
+			err.responseTime ?? new Date().getTime() - startingDate.getTime()
+		);
+	}
+
+	if (respond) {
+		const { response, responseTime } = respond;
+		let data: DataType[] = [];
+		let sendNotification = false;
+		let isAssertionFailed = false;
+
+		const authorized = get(response, 'request.connection.authorized');
+		if (task.verifySSL && !authorized) {
+			(sendNotification = true), (isAssertionFailed = true);
+			data.push({
+				noSLL: true,
+				isAssertionFailed: true
+			});
+		}
+		if (!_.isEmpty(task.assertions) && task.assertions !== null) {
+			const assertions = task.assertions;
+			for (let i = 0; i < assertions.length; i++) {
+				const { type } = assertions[i];
+				const assertionFunc = getHttpAssertionFunc[type];
+				const assertionResult = assertionFunc({
+					response,
+					assertion: assertions[i],
+					responseTime,
+					url: task.url
+				});
+				if (assertionResult.isAssertionFailed) {
+					sendNotification = true;
+					isAssertionFailed = true;
+				}
+
+				data.push(assertionResult);
+			}
+		}
+
+		await postMetric(
+			task,
+			location,
+			startingDate,
+			data,
+			isAssertionFailed ? Status.ASSERTION_FAILED : Status.SUCCESS,
+			response.status,
+			responseTime
+		);
 	}
 };
-const sendRequest: (task: HealthCheck) => Promise<{ response: AxiosResponse; responseTime: number } | undefined> = async (
+const sendRequest: (
 	task: HealthCheck
-) => {
+) => Promise<{ response: AssertionFnOptions['response']; responseTime: number } | undefined> = async (task: HealthCheck) => {
 	let axiosRequestConfig: AxiosRequestConfig = {
 		method: task.method,
 		url: task.url
@@ -64,16 +91,22 @@ const sendRequest: (task: HealthCheck) => Promise<{ response: AxiosResponse; res
 				password: task.httpPassword
 			}
 		};
-		if (task.requestBody !== null) {
-			axiosRequestConfig = { ...axiosRequestConfig, data: task.requestBody };
-		}
-		if (task.verifySSL) {
-			const agent = new https.Agent({ rejectUnauthorized: false });
+	}
+	if (task.requestBody !== null) {
+		axiosRequestConfig = { ...axiosRequestConfig, data: task.requestBody };
+	}
 
-			axiosRequestConfig.httpsAgent = agent;
-		}
+	let tlsCert: tls.PeerCertificate | undefined;
+	if (task.verifySSL) {
+		const agent = new https.Agent({ rejectUnauthorized: true, requestCert: true }).on(
+			'keylog',
+			(line, tlsSocket) => (tlsCert = tlsSocket.getPeerCertificate(true))
+		);
+
+		axiosRequestConfig.httpsAgent = agent;
 	}
 	const start = performance.now();
 	const response: AxiosResponse = await axios(axiosRequestConfig);
-	return { response, responseTime: performance.now() - start };
+	// TODO: Pending DNS lookup
+	return { response: { ...response, tlsCert }, responseTime: performance.now() - start };
 };

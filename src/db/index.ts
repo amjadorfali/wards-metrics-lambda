@@ -24,6 +24,7 @@ export const getTimeSeriesClient = () => {
 	});
 };
 
+//TODO: Add error reason as well
 export const postMetric = async (
 	healthMetric: HealthCheck,
 	location: string,
@@ -35,25 +36,31 @@ export const postMetric = async (
 ) => {
 	const client = getTimeSeriesClient();
 	await client.connect();
-	return client.query(`INSERT INTO userevents_mock (home_id, timestamp, responsetime, status, location) VALUES ($1, $2, $3, $4, $5)`, [
-		healthMetric.id,
-		date,
-		Math.floor(responseTime),
-		1, // Status success
-		'US' //location
-	]);
+	const res = await client.query('SELECT * FROM HealthMetric WHERE taskId = $1', [healthMetric.id]);
+	console.log('existing rows', res.rows);
+	return client.query(
+		`INSERT INTO HealthMetric (taskId, region, status, responseCode, assertions, responseTime, method, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		[healthMetric.id, location, status, responseCode, JSON.stringify(assertions), Math.floor(responseTime), healthMetric.method, date]
+	);
 };
 
-export async function postMetricError(task: HealthCheck, date: Date, status: number, responseCode: number, errReason: string) {
+export async function postMetricError(
+	healthMetric: HealthCheck,
+	date: Date,
+	status: number,
+	responseCode: number,
+	errReason: string,
+	location: string,
+	responseTime: number
+) {
 	const client = getTimeSeriesClient();
 	await client.connect();
-	return client.query(`INSERT INTO HealthMetric (taskId, time, status, responseCode, result) VALUES ($1, $2, $3, $4, $5)`, [
-		task.id,
-		date,
-		status,
-		responseCode,
-		errReason
-	]);
+	const res = await client.query('SELECT * FROM HealthMetric WHERE taskId = $1', [healthMetric.id]);
+	console.log('existing rows', res.rows);
+	return client.query(
+		`INSERT INTO HealthMetric (taskId, timestamp, status, responseCode, errReason, region, responseTime) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		[healthMetric.id, date, status, responseCode, errReason, location, responseTime]
+	);
 }
 
 export const updateInProgress = async (id: string, date: Date) => {

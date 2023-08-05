@@ -164,7 +164,8 @@ export let AssertionType: {
 
 export type AssertionType = (typeof AssertionType)[keyof typeof AssertionType];
 export const Status = {
-	ASSERTION_FAILED: 0,
+	// TODO: to decide on values
+	ASSERTION_FAILED: 0.5,
 	SUCCESS: 1,
-	ERROR: 2
+	ERROR: 0
 };
