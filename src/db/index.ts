@@ -37,8 +37,7 @@ export const postMetric = async (
 ) => {
 	const client = getTimeSeriesClient();
 	await client.connect();
-	const res = await client.query('SELECT * FROM HealthMetric WHERE taskId = $1', [healthMetric.id]);
-	console.log('existing rows', res.rows);
+
 	return client.query(
 		`INSERT INTO HealthMetric (taskId, region, status, responseCode, assertions, responseTime, method, timestamp, errReason) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		[
