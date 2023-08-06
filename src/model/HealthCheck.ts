@@ -162,7 +162,7 @@ export let AssertionType: {
 
 export type AssertionType = (typeof AssertionType)[keyof typeof AssertionType];
 export const Status = {
-	// TODO: to decide on values
+	// TODO: Set proper failure rate
 	ASSERTION_FAILED: 0.5,
 	SUCCESS: 1,
 	ERROR: 0

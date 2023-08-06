@@ -24,7 +24,6 @@ export const getTimeSeriesClient = () => {
 	});
 };
 
-//TODO: Add error reason as well
 export const postMetric = async (
 	healthMetric: HealthCheck,
 	location: string,

@@ -1,7 +1,6 @@
 import { processTask } from './functions/processHealthMetric/processHealthMetric';
 import { SQSEvent } from 'aws-lambda';
 import { HealthCheck } from './model/HealthCheck';
-import axios from 'axios';
 
 const testObj: HealthCheck = {
 	id: '15',
