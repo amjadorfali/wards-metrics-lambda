@@ -2,7 +2,7 @@ import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios';
 import { HealthCheck, Status } from '../../model/HealthCheck';
 import { AssertionFnOptions, DataType, getHttpAssertionFunc } from '../../service/AssertionService';
 import _ from 'lodash';
-import { postMetric, postMetricError } from '../../db';
+import { postMetric } from '../../db';
 import https from 'https';
 import * as tls from 'tls';
 import get from 'lodash/get';
@@ -13,14 +13,16 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 		var respond = await sendRequest(task);
 	} catch (err: any) {
 		const error = err as AxiosError;
-		await postMetricError(
+
+		await postMetric(
 			task,
+			location,
 			startingDate,
+			[],
 			Status.ERROR,
 			error.response?.status ?? 500,
-			error.message,
-			location,
-			err.responseTime ?? new Date().getTime() - startingDate.getTime()
+			new Date().getTime() - startingDate.getTime(),
+			error.message
 		);
 	}
 
@@ -29,12 +31,14 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 		let data: DataType[] = [];
 		let sendNotification = false;
 		let isAssertionFailed = false;
+		let errReason = '';
 
 		const authorized = get(response, 'request.connection.authorized');
 		if (task.verifySSL && !authorized) {
 			(sendNotification = true), (isAssertionFailed = true);
+			errReason = 'Assertion(s) Failed';
 			data.push({
-				noSLL: true,
+				message: 'SSL verification',
 				isAssertionFailed: true
 			});
 		}
@@ -52,6 +56,7 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 				if (assertionResult.isAssertionFailed) {
 					sendNotification = true;
 					isAssertionFailed = true;
+					errReason = 'Assertion(s) Failed';
 				}
 
 				data.push(assertionResult);
@@ -65,7 +70,8 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 			data,
 			isAssertionFailed ? Status.ASSERTION_FAILED : Status.SUCCESS,
 			response.status,
-			responseTime
+			responseTime,
+			errReason
 		);
 	}
 };
@@ -81,7 +87,10 @@ const sendRequest: (
 	}
 
 	if (task.headers !== null) {
-		axiosRequestConfig = { ...axiosRequestConfig, headers: task.headers };
+		const headers = task.headers.reduce<Record<string, string>>((prev, curr) => {
+			return { ...prev, [curr.key]: curr.value };
+		}, {});
+		axiosRequestConfig = { ...axiosRequestConfig, headers };
 	}
 	if (task.httpUserName !== null && task.httpPassword !== null) {
 		axiosRequestConfig = {
@@ -93,7 +102,15 @@ const sendRequest: (
 		};
 	}
 	if (task.requestBody !== null) {
-		axiosRequestConfig = { ...axiosRequestConfig, data: task.requestBody };
+		try {
+			axiosRequestConfig = {
+				...axiosRequestConfig,
+				data: JSON.parse(task.requestBody)
+			};
+		} catch (err) {
+			// TODO: Notify user on failed parsing
+			console.error(err);
+		}
 	}
 
 	let tlsCert: tls.PeerCertificate | undefined;

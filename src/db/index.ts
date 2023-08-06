@@ -32,36 +32,28 @@ export const postMetric = async (
 	assertions: DataType[],
 	status: number,
 	responseCode: number,
-	responseTime: number
+	responseTime: number,
+	errReason: string
 ) => {
 	const client = getTimeSeriesClient();
 	await client.connect();
 	const res = await client.query('SELECT * FROM HealthMetric WHERE taskId = $1', [healthMetric.id]);
 	console.log('existing rows', res.rows);
 	return client.query(
-		`INSERT INTO HealthMetric (taskId, region, status, responseCode, assertions, responseTime, method, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		[healthMetric.id, location, status, responseCode, JSON.stringify(assertions), Math.floor(responseTime), healthMetric.method, date]
+		`INSERT INTO HealthMetric (taskId, region, status, responseCode, assertions, responseTime, method, timestamp, errReason) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		[
+			healthMetric.id,
+			location,
+			status,
+			responseCode,
+			JSON.stringify(assertions),
+			Math.floor(responseTime),
+			healthMetric.method,
+			date,
+			errReason
+		]
 	);
 };
-
-export async function postMetricError(
-	healthMetric: HealthCheck,
-	date: Date,
-	status: number,
-	responseCode: number,
-	errReason: string,
-	location: string,
-	responseTime: number
-) {
-	const client = getTimeSeriesClient();
-	await client.connect();
-	const res = await client.query('SELECT * FROM HealthMetric WHERE taskId = $1', [healthMetric.id]);
-	console.log('existing rows', res.rows);
-	return client.query(
-		`INSERT INTO HealthMetric (taskId, timestamp, status, responseCode, errReason, region, responseTime) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-		[healthMetric.id, date, status, responseCode, errReason, location, responseTime]
-	);
-}
 
 export const updateInProgress = async (id: string, date: Date) => {
 	const client = getTaskServiceClient();

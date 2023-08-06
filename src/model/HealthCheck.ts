@@ -53,12 +53,11 @@ export type HealthCheck = {
 	updatedAt: Date;
 	teamId: number;
 	assertionId: number | null;
-	metadata: HealthTaskMetadata;
 	httpUserName: string | null;
 	httpPassword: string | null;
-	headers: { key: string; value: string } | null;
+	headers: { key: string; value: string }[] | null;
 	assertions: Assertion[] | null;
-	requestBody: Object | null;
+	requestBody: string | null;
 	verifySSL: boolean;
 };
 
@@ -130,8 +129,7 @@ export type Assertion = {
 	type: AssertionType;
 	value: any;
 	compareType: CompareType;
-	key: string;
-	healthCheckId: string | null;
+	key?: string;
 };
 
 export type Header = {
@@ -156,7 +154,7 @@ export type CompareType = (typeof CompareType)[keyof typeof CompareType];
 export let AssertionType: {
 	RESPONSE_TIME: 'RESPONSE_TIME';
 	RESPONSE_CODE: 'RESPONSE_CODE';
-	RESPONSE_BODY: 'RESPONSE_BODY';
+	RESPONSE_VALUE: 'RESPONSE_VALUE';
 	RESPONSE_JSON: 'RESPONSE_JSON';
 	RESPONSE_HEADER: 'RESPONSE_HEADER';
 	SSL_CERTIFICATE_EXPIRES_IN: 'SSL_CERTIFICATE_EXPIRES_IN';
