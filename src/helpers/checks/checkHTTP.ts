@@ -108,7 +108,7 @@ const sendRequest: (
 				data: JSON.parse(task.requestBody)
 			};
 		} catch (err) {
-			// TODO: Notify user on failed parsing
+			// TODO: Notify user on failed parsing - How?
 			console.error(err);
 		}
 	}
