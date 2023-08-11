@@ -1,4 +1,4 @@
-import { processTask } from './functions/processHealthMetric/processHealthMetric';
+import { run } from './functions/processHealthMetric';
 import { SQSEvent } from 'aws-lambda';
 import { HealthCheck } from './model/HealthCheck';
 
@@ -42,13 +42,19 @@ const testObj: HealthCheck = {
 	url: 'http://www.flexboxdefense.com',
 	// url: 'https://amjadorfali.com',
 	// url: 'http://localhost:8700/api/health-check',
-	// /	url: 'https://amjadorfali.com',
+	// url: 'https://amjadorfali.com',
 	teamId: 1,
 	type: 'HTTP',
 	assertionId: 9,
 	port: null,
 	interval: 300
 };
+let environment = process.env.ACTIVE_PROFILE;
+
+if (!environment || environment === 'development') {
+	require('dotenv').config();
+	environment = process.env.ACTIVE_PROFILE;
+}
 async function test() {
 	const task: string = JSON.stringify(testObj);
 	const sqsRecord: SQSEvent = {
@@ -69,7 +75,7 @@ async function test() {
 			}
 		]
 	};
-	await processTask(sqsRecord);
+	await run(sqsRecord);
 }
 
 test();

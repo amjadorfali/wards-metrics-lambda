@@ -4,19 +4,24 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: nodejs18.x
-
-constructs:
-  jobs:
-    type: queue
-    worker:
-      handler: index.consumer
+  environment:
+    REGION: "eu-central-1"
+    TIMESCALE_USER: "wards"
+    TIMESCALE_DB: "postgres"
+    TIMESCALE_PASSWORD: "As751L4Tl3P25iZNI2yVY7wr"
+    TIMESCALE_HOST: "ec2-3-70-206-94.eu-central-1.compute.amazonaws.com"
+    POSTGRES_USER: "wardsprod"
+    POSTGRES_DB: "postgres"
+    POSTGRES_PASSWORD: "02hkM2EpHYFeBvZCkvea"
+    POSTGRES_HOST: "wards-prod.c1kcykenvknf.eu-central-1.rds.amazonaws.com"
+    ACTIVE_PROFILE: "production"
 
 functions:
   producer:
-    handler: src/functions/processHealthMetric
+    handler: src/functions/processHealthMetric.run
     events:
       - sqs:
-          arn: arn:aws:sqs:eu-central-1:923494038643:PROD_METRIC_HEALTH_CHECK
+          arn: arn:aws:sqs:eu-central-1:387070877324:PROD_METRIC_HEALTH_CHECK
           batchSize: 10
           maximumBatchingWindow: 60
           functionResponseType: ReportBatchItemFailures

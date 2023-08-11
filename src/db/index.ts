@@ -1,25 +1,25 @@
-import PG from 'pg';
+import PG, {Client} from 'pg';
 import { HealthCheck } from '../model/HealthCheck';
 import { DataType } from '../service/AssertionService';
 
 const Pool = PG.Client;
 
 export const getTaskServiceClient = () => {
-	return new Pool({
-		user: 'wardsprod',
-		host: 'wards-prod.c1kcykenvknf.eu-central-1.rds.amazonaws.com',
-		database: 'master',
-		password: '02hkM2EpHYFeBvZCkvea',
+	return new Client({
+		user: process.env.POSTGRES_USER,
+		host: process.env.POSTGRES_HOST,
+		database: process.env.POSTGRES_DB,
+		password: process.env.POSTGRES_PASSWORD,
 		port: 5432
 	});
 };
 
 export const getTimeSeriesClient = () => {
-	return new Pool({
-		user: 'remoteops-master',
-		host: 'localhost',
-		database: 'postgres',
-		password: 'metric123',
+	return new Client({
+		user: process.env.TIMESCALE_USER,
+		host: process.env.TIMESCALE_HOST,
+		database: process.env.TIMESCALE_DB,
+		password: process.env.TIMESCALE_PASSWORD,
 		port: 5432
 	});
 };
@@ -37,7 +37,7 @@ export const postMetric = async (
 	const client = getTimeSeriesClient();
 	await client.connect();
 
-	return client.query(
+	await client.query(
 		`INSERT INTO HealthMetric (taskId, region, status, responseCode, assertions, responseTime, method, timestamp, errReason) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		[
 			healthMetric.id,
@@ -51,6 +51,8 @@ export const postMetric = async (
 			errReason
 		]
 	);
+	client.end();
+	return;
 };
 
 export const updateInProgress = async (id: string, date: Date) => {

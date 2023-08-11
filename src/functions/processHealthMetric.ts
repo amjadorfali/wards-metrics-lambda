@@ -1,9 +1,10 @@
 import {SQSEvent} from "aws-lambda";
-import {HealthCheck} from "../../model/HealthCheck";
-import {checkHTTP} from "../../helpers/checks/checkHTTP";
-import {checkTCPPort} from "../../helpers/checks/checkTCPPort";
+import {HealthCheck} from "../model/HealthCheck";
+import {checkHTTP} from "../helpers/checks/checkHTTP";
+import {checkTCPPort} from "../helpers/checks/checkTCPPort";
 
-export const processTask = async (event: SQSEvent) => {
+export const run = async (event: SQSEvent) => {
+  console.log(event)
   const task: HealthCheck = JSON.parse(event.Records[0].body)
   const location = event.Records[0].awsRegion
   if (task.type === "HTTP") {
