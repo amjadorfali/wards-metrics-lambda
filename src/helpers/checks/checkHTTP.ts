@@ -42,7 +42,7 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 				isAssertionFailed: true
 			});
 		}
-		if (!_.isEmpty(task.assertions) && task.assertions !== null) {
+		if (!_.isEmpty(task.assertions) && !!task.assertions) {
 			const assertions = task.assertions;
 			for (let i = 0; i < assertions.length; i++) {
 				const { type } = assertions[i];
@@ -82,17 +82,16 @@ const sendRequest: (
 		method: task.method,
 		url: task.url
 	};
-	if (task.timeout != null) {
+	if (!!task.timeout) {
 		axiosRequestConfig = { ...axiosRequestConfig, timeout: task.timeout };
 	}
-
-	if (task.headers !== null) {
+	if (task.headers) {
 		const headers = task.headers.reduce<Record<string, string>>((prev, curr) => {
 			return { ...prev, [curr.key]: curr.value };
 		}, {});
 		axiosRequestConfig = { ...axiosRequestConfig, headers };
 	}
-	if (task.httpUserName !== null && task.httpPassword !== null) {
+	if (!!task.httpUserName && !!task.httpPassword) {
 		axiosRequestConfig = {
 			...axiosRequestConfig,
 			auth: {
@@ -101,7 +100,7 @@ const sendRequest: (
 			}
 		};
 	}
-	if (task.requestBody !== null) {
+	if (!!task.requestBody) {
 		try {
 			axiosRequestConfig = {
 				...axiosRequestConfig,
