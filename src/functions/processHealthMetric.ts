@@ -4,12 +4,18 @@ import { checkHTTP } from '../helpers/checks/checkHTTP';
 import { checkTCPPort } from '../helpers/checks/checkTCPPort';
 
 export const run = async (event: SQSEvent) => {
-	console.log('Processing event:', event);
+	console.log(`Processing ${event?.Records?.length} events`);
 	for (const record of event.Records) {
 		try {
 			const task: HealthCheck = JSON.parse(record.body);
-			const location = event.Records[0].awsRegion;
-			console.log('Processing Record', task);
+			const location = record.awsRegion;
+			console.log('- Processing Record, SQS msg ID: -', record.messageId);
+			console.log('Event Source:', record.eventSource);
+			console.log('Event Source ARN:', record.eventSourceARN);
+			console.log('AWS Region:', location);
+			console.log('Body:', record.body);
+			console.log('Attributes:', record.attributes);
+
 			if (task.type === 'HTTP') {
 				await checkHTTP(task, location);
 			}
