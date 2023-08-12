@@ -24,6 +24,7 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 			new Date().getTime() - startingDate.getTime(),
 			error.message
 		);
+		return;
 	}
 
 	if (respond) {

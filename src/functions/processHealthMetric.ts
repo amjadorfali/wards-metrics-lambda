@@ -4,23 +4,23 @@ import { checkHTTP } from '../helpers/checks/checkHTTP';
 import { checkTCPPort } from '../helpers/checks/checkTCPPort';
 
 export const run = async (event: SQSEvent) => {
-	console.log(`Processing ${event?.Records?.length} events`);
+	console.log(`Processing records: ${JSON.stringify(event.Records)}`);
 	for (const record of event.Records) {
 		try {
-			const task: HealthCheck = JSON.parse(record.body);
+			var task: HealthCheck = JSON.parse(record.body);
 			const location = record.awsRegion;
-			console.log('- Processing Record, SQS msg ID: -', record.messageId);
-			console.log('Event Source:', record.eventSource);
-			console.log('Event Source ARN:', record.eventSourceARN);
-			console.log('AWS Region:', location);
-			console.log('Body:', record.body);
-			console.log('Attributes:', record.attributes);
+
+			const { receiptHandle, body, ...toLog } = record;
+			console.log(JSON.stringify({ ...toLog, task }));
 
 			if (task.type === 'HTTP') {
 				await checkHTTP(task, location);
 			}
+
+			console.log(`- Processing Ended for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -`);
 		} catch (e) {
-			console.error(e);
+			// @ts-ignore - Need to fix TS issue with declaring Vars
+			console.error(`- Error occured for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -\n`, 'Error: ', e);
 		}
 	}
 };
