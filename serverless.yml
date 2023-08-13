@@ -5,27 +5,31 @@ provider:
   name: aws
   runtime: nodejs18.x
   environment:
-    REGION: "eu-central-1"
-    TIMESCALE_USER: "wards"
-    TIMESCALE_DB: "postgres"
-    TIMESCALE_PASSWORD: "As751L4Tl3P25iZNI2yVY7wr"
-    TIMESCALE_HOST: "ec2-3-70-206-94.eu-central-1.compute.amazonaws.com"
-    POSTGRES_USER: "wardsprod"
-    POSTGRES_DB: "postgres"
-    POSTGRES_PASSWORD: "02hkM2EpHYFeBvZCkvea"
-    POSTGRES_HOST: "wards-prod.c1kcykenvknf.eu-central-1.rds.amazonaws.com"
-    ACTIVE_PROFILE: "production"
+    REGION: 'eu-central-1'
+    TIMESCALE_USER: 'wards'
+    TIMESCALE_DB: 'postgres'
+    TIMESCALE_PASSWORD: 'As751L4Tl3P25iZNI2yVY7wr'
+    TIMESCALE_HOST: 'ec2-3-70-206-94.eu-central-1.compute.amazonaws.com'
+    POSTGRES_USER: 'wardsprod'
+    POSTGRES_DB: 'postgres'
+    POSTGRES_PASSWORD: '02hkM2EpHYFeBvZCkvea'
+    POSTGRES_HOST: 'wards-prod.c1kcykenvknf.eu-central-1.rds.amazonaws.com'
+    ACTIVE_PROFILE: 'production'
 
 functions:
   producer:
     handler: src/functions/processHealthMetric.run
     events:
       - sqs:
-          arn: arn:aws:sqs:eu-central-1:387070877324:PROD_METRIC_HEALTH_CHECK
+          arn: arn:aws:sqs:me-central-1:387070877324:PROD_METRIC_HEALTH_CHECK
           batchSize: 10
-          maximumBatchingWindow: 60
           functionResponseType: ReportBatchItemFailures
 
+  # 'eu-central-1': Locations.FRANKFURT,
+  # 'eu-west-1': Locations.IRELAND,
+  # 'ap-southeast-2': Locations.SYDNEY,
+  # 'us-west-1': Locations.CALIFORNIA,
+  # 'me-central-1': Locations.DUBAI
 
 plugins:
   - serverless-lift
