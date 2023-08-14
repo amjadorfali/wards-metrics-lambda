@@ -1,4 +1,4 @@
-import PG, {Client} from 'pg';
+import PG, { Client } from 'pg';
 import { HealthCheck } from '../model/HealthCheck';
 import { DataType } from '../service/AssertionService';
 
@@ -51,7 +51,7 @@ export const postMetric = async (
 			errReason
 		]
 	);
-	client.end();
+	await client.end();
 	return;
 };
 
