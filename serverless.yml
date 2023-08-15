@@ -1,16 +1,17 @@
 service: metric-lambda
 frameworkVersion: '3'
 
-# Run scripts to deploy to every region (modify your profile name)
-# serverless deploy --region eu-central-1 --aws-profile wards-me
-# serverless deploy --region eu-west-1 --aws-profile wards-me
-# serverless deploy --region ap-southeast-2 --aws-profile wards-me
-# serverless deploy --region us-west-1 --aws-profile wards-me
-# serverless deploy --region me-central-1 --aws-profile wards-me
-
 provider:
   name: aws
   runtime: nodejs18.x
+  region: me-central-1
+  # change region whenever you deploy, and deploy to all regions! run: serverless deploy --aws-profile wards-me
+  # eu-central-1
+  # eu-west-1
+  # ap-southeast-2
+  # us-west-1
+  # me-central-1
+
   environment:
     # This (REGION) is no longer needed/used
     REGION: 'eu-central-1'

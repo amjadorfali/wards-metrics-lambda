@@ -12,6 +12,7 @@ const RegionKeyToLabel: { [key: string]: keyof typeof Locations } = {
 };
 export const run = async (event: SQSEvent) => {
 	console.log(`Processing records: ${JSON.stringify(event.Records)}`);
+	const promises: Promise<any>[] = [];
 	for (const record of event.Records) {
 		try {
 			var task: HealthCheck = JSON.parse(record.body);
@@ -21,15 +22,19 @@ export const run = async (event: SQSEvent) => {
 			console.log(JSON.stringify({ ...toLog, task }));
 
 			if (task.type === 'HTTP') {
-				await checkHTTP(task, location);
+				promises.push(
+					checkHTTP(task, location)
+						.then(() => console.log(`- Processing Ended for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -`))
+						.catch((e) => console.error(`- Error occured for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -\n`, 'Error: ', e))
+				);
 			}
-
-			console.log(`- Processing Ended for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -`);
 		} catch (e) {
 			// @ts-ignore - Need to fix TS issue with declaring Vars
 			console.error(`- Error occured for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -\n`, 'Error: ', e);
 		}
 	}
+
+	await Promise.all(promises);
 };
 
 const getRequest = async (task: HealthCheck) => {
