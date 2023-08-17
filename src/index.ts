@@ -1,54 +1,37 @@
 import { run } from './functions/processHealthMetric';
 import { SQSEvent } from 'aws-lambda';
 import { HealthCheck } from './model/HealthCheck';
-
-const testObj: HealthCheck = {
-	id: '15',
-	name: 'task-5',
-	method: 'GET',
-	timeout: 123000,
-	httpUserName: null,
-	httpPassword: null,
-	headers: null,
-	assertions: [
-		// { value: 199, type: 'RESPONSE_CODE', compareType: 'SMALL_EQUAL' },
-		{ value: 200, type: 'RESPONSE_CODE', compareType: 'EQUAL' },
-		// { value: 201, type: 'RESPONSE_CODE', compareType: 'BIG_EQUAL' }
-		// { value: 3000, type: 'RESPONSE_TIME', compareType: 'SMALL_EQUAL' },
-		// { value: 1000, type: 'RESPONSE_TIME', compareType: 'BIG_EQUAL' },
-
-		// { value: 'hello', type: 'RESPONSE_VALUE', compareType: 'EQUAL' }
-		// { value: 'hello', type: 'RESPONSE_VALUE', compareType: 'NOT_EQUAL' },
-		// { value: 'hello', type: 'RESPONSE_VALUE', compareType: 'CONTAINS' },
-		// { value: 'hello', type: 'RESPONSE_VALUE', compareType: 'DOES_NOT_CONTAIN' },
-		// { value: 'Ayre fek', key: 'samir.sako.string', type: 'RESPONSE_JSON', compareType: 'EQUAL' },
-		// { value: '2', key: 'samir.sako.number', type: 'RESPONSE_JSON', compareType: 'EQUAL' },
-		// { value: 'false', key: 'samir.sako.boolean', type: 'RESPONSE_JSON', compareType: 'EQUAL' },
-		// { value: 'ayre', key: 'samir.sako.array[0]', type: 'RESPONSE_JSON', compareType: 'EQUAL' },
-		// { value: 'Fik', key: 'ZebiFeek', type: 'RESPONSE_HEADER', compareType: 'EQUAL' },
-
-		{ value: 1000, type: 'RESPONSE_TIME', compareType: 'SMALL_EQUAL' }
-		// { value: 46, type: 'SSL_CERTIFICATE_EXPIRES_IN', compareType: 'BIG' }
+const testObj2= {
+	"id": "fb8647a9-56fb-466e-a159-1ce4c91a842b",
+	"name": "1231231",
+	"method": "GET",
+	"timeout": 10000,
+	"enabled": true,
+	"type": "HTTP",
+	"interval": 180,
+	"url": "https://amjadorfali.com",
+	"locations": [
+		"FRANKFURT",
+		"IRELAND",
+		"DUBAI",
+		"SYDNEY",
+		"CALIFORNIA"
 	],
-	requestBody: 'null',
-	verifySSL: false,
-	enabled: true,
-	locations: ['FRANKFURT'],
-	createdAt: new Date('2023-06-30T11:11:30.046Z'),
-	updatedAt: new Date('2023-06-30T11:11:30.047Z'),
-	inProgress: false,
-	lastChecked: new Date('2023-06-30T11:11:30.043Z'),
-	// None-SSL URL
-	url: 'http://www.flexboxdefense.com',
-	// url: 'https://amjadorfali.com',
-	// url: 'http://localhost:8700/api/health-check',
-	// url: 'https://amjadorfali.com',
-	teamId: 1,
-	type: 'HTTP',
-	assertionId: 9,
-	port: null,
-	interval: 300
-};
+	"createdAt": "2023-08-16T21:45:30.571Z",
+	"updatedAt": "2023-08-16T21:45:30.572Z",
+	"teamId": 3,
+	"insightsId": "fb8647a9-56fb-466e-a159-1ce4c91a842b",
+	"metadataId": 9,
+	"httpUserName": "",
+	"httpPassword": "",
+	"headers": [],
+	"assertions": [],
+	"requestBody": "",
+	"verifySSL": true,
+	"sslIssuedBy": null,
+	"sslExpiresOn": null,
+	"status": null
+}
 let environment = process.env.ACTIVE_PROFILE;
 
 if (!environment || environment === 'development') {
@@ -56,7 +39,7 @@ if (!environment || environment === 'development') {
 	environment = process.env.ACTIVE_PROFILE;
 }
 async function test() {
-	const task: string = JSON.stringify(testObj);
+	const task: string = JSON.stringify(testObj2);
 	const sqsRecord: SQSEvent = {
 		Records: [
 			{

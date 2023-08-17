@@ -55,8 +55,13 @@ export const postMetric = async (
 	return;
 };
 
-export const updateInProgress = async (id: string, date: Date) => {
+export const updateInsights = async (id: string, status: number, sslIssuedBy: string, sslExpiresOn: string) => {
 	const client = getTaskServiceClient();
 	await client.connect();
-	return client.query(`UPDATE "HealthCheck" SET "inProgress" = false WHERE id = $1 AND "lastChecked" = $2`, [id, date]);
+	return client.query(`UPDATE task_insight SET "sslIssuedBy" = $2, "sslExpiresOn" = $3, status = $4 WHERE id=$1`, [
+		id,
+		sslIssuedBy,
+		sslExpiresOn,
+		status
+	]);
 };

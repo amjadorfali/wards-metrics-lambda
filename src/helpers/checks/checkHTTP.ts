@@ -2,10 +2,11 @@ import axios, { AxiosResponse, AxiosRequestConfig, AxiosError } from 'axios';
 import { HealthCheck, Status } from '../../model/HealthCheck';
 import { AssertionFnOptions, DataType, getHttpAssertionFunc } from '../../service/AssertionService';
 import _ from 'lodash';
-import { postMetric } from '../../db';
+import { postMetric, updateInsights } from '../../db';
 import https from 'https';
 import * as tls from 'tls';
 import get from 'lodash/get';
+
 export const checkHTTP = async (task: HealthCheck, location: string) => {
 	const startingDate = new Date();
 
@@ -24,6 +25,7 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 			new Date().getTime() - startingDate.getTime(),
 			error.message
 		);
+		await updateInsights(task.insightsId, Status.ERROR, '', '');
 		return;
 	}
 
@@ -63,22 +65,18 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 				data.push(assertionResult);
 			}
 		}
-
-		await postMetric(
-			task,
-			location,
-			startingDate,
-			data,
-			isAssertionFailed ? Status.ASSERTION_FAILED : Status.SUCCESS,
-			response.status,
-			responseTime,
-			errReason
-		);
+		const status = isAssertionFailed ? Status.ASSERTION_FAILED : Status.SUCCESS;
+		await postMetric(task, location, startingDate, data, status, response.status, responseTime, errReason);
+		await updateInsights(task.insightsId, status, response.tlsCert?.issuer.CN || '', response.tlsCert?.valid_to || '');
 	}
 };
-const sendRequest: (
-	task: HealthCheck
-) => Promise<{ response: AssertionFnOptions['response']; responseTime: number } | undefined> = async (task: HealthCheck) => {
+const sendRequest: (task: HealthCheck) => Promise<
+	| {
+			response: AssertionFnOptions['response'];
+			responseTime: number;
+	  }
+	| undefined
+> = async (task: HealthCheck) => {
 	let axiosRequestConfig: AxiosRequestConfig = {
 		method: task.method,
 		url: task.url

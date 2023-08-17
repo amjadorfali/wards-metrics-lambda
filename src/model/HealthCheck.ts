@@ -59,6 +59,10 @@ export type HealthCheck = {
 	assertions: Assertion[] | null;
 	requestBody: string | null;
 	verifySSL: boolean;
+	sslIssuedBy: null | string;
+	sslExpiresOn: null | Date;
+	status: null | number;
+	insightsId: string;
 };
 
 /**
