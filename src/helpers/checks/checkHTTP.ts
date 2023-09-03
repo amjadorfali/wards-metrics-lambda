@@ -6,8 +6,11 @@ import { postMetric, updateInsights } from '../../db';
 import https from 'https';
 import * as tls from 'tls';
 import get from 'lodash/get';
+import { SQSClient } from '@aws-sdk/client-sqs';
+import { QueueService } from '../../service/QueueService';
+import PG from 'pg';
 
-export const checkHTTP = async (task: HealthCheck, location: string) => {
+export const checkHTTP = async (timeSeriesClient: PG.Client, rdsClient: PG.Client, task: HealthCheck, location: string) => {
 	const startingDate = new Date();
 
 	try {
@@ -23,9 +26,11 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 			Status.ERROR,
 			error.response?.status ?? 500,
 			new Date().getTime() - startingDate.getTime(),
-			error.message
+			error.message,
+			timeSeriesClient
 		);
-		await updateInsights(task.insightsId, Status.ERROR, '', '');
+		await updateInsights(task.insightsId, Status.ERROR, '', '', rdsClient);
+		await sendSQS(task);
 		return;
 	}
 
@@ -65,9 +70,12 @@ export const checkHTTP = async (task: HealthCheck, location: string) => {
 				data.push(assertionResult);
 			}
 		}
+		if (isAssertionFailed) {
+			await sendSQS(task);
+		}
 		const status = isAssertionFailed ? Status.ASSERTION_FAILED : Status.SUCCESS;
-		await postMetric(task, location, startingDate, data, status, response.status, responseTime, errReason);
-		await updateInsights(task.insightsId, status, response.tlsCert?.issuer.CN || '', response.tlsCert?.valid_to || '');
+		await postMetric(task, location, startingDate, data, status, response.status, responseTime, errReason, timeSeriesClient);
+		await updateInsights(task.insightsId, status, response.tlsCert?.issuer.CN || '', response.tlsCert?.valid_to || '', rdsClient);
 	}
 };
 const sendRequest: (task: HealthCheck) => Promise<
@@ -124,4 +132,19 @@ const sendRequest: (task: HealthCheck) => Promise<
 	const response: AxiosResponse = await axios(axiosRequestConfig);
 	// TODO: Pending DNS lookup
 	return { response: { ...response, tlsCert }, responseTime: performance.now() - start };
+};
+const sendSQS = async (task: HealthCheck) => {
+	const queue = new QueueService(
+		new SQSClient({
+			region: process.env.REGION,
+			credentials: {
+				accessKeyId: process.env.ACCESS_KEY_ID || '',
+				secretAccessKey: process.env.ACCESS_KEY || ''
+			}
+		}),
+		`https://sqs.${process.env.REGION}.amazonaws.com/387070877324/PROD_INCIDENT`
+	);
+
+	await queue.sendMessage(JSON.stringify(task));
+	console.log('SQS SENT TO NOTIFICATION LAMBDA', task);
 };

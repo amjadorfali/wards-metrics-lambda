@@ -1,38 +1,33 @@
-import {SendMessageCommand, SQSClient} from "@aws-sdk/client-sqs";
+import {
+  SendMessageBatchCommand,
+  SQSClient,
+  SendMessageBatchRequestEntry, SendMessageCommand
+} from "@aws-sdk/client-sqs";
 
-class QueueService {
-  client
-  url
+export class QueueService {
+  client: SQSClient
+  url: string
 
   constructor(client: SQSClient, url: string) {
     this.client = client;
     this.url = url;
   }
 
-  async sendMessage() {
-    const command = new SendMessageCommand({
+  sendBatchMessage(message: SendMessageBatchRequestEntry[]): Promise<any> {
+    const command = new SendMessageBatchCommand({
+      Entries: message,
       QueueUrl: this.url,
-      DelaySeconds: 10,
-      MessageAttributes: {
-        Title: {
-          DataType: "String",
-          StringValue: "The Whistler",
-        },
-        Author: {
-          DataType: "String",
-          StringValue: "John Grisham",
-        },
-        WeeksOn: {
-          DataType: "Number",
-          StringValue: "6",
-        },
-      },
-      MessageBody:
-        "Information about current NY Times fiction bestseller for week of 12/11/2016.",
     });
+    console.log('Sending SQS: ',command.input)
+    return this.client.send(command);
+  }
 
-    const response = await this.client.send(command);
-    console.log(response);
-    return response;
+  sendMessage(message: string): Promise<any> {
+    const command = new SendMessageCommand({
+      MessageBody: message,
+      QueueUrl: this.url,
+    });
+    console.log('Sending SQS: ',command.input)
+    return this.client.send(command);
   }
 }

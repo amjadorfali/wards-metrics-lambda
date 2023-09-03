@@ -2,6 +2,7 @@ import { SQSEvent } from 'aws-lambda';
 import { HealthCheck, Locations } from '../model/HealthCheck';
 import { checkHTTP } from '../helpers/checks/checkHTTP';
 import { checkTCPPort } from '../helpers/checks/checkTCPPort';
+import { getTaskServiceClient, getTimeSeriesClient } from '../db';
 
 const RegionKeyToLabel: { [key: string]: keyof typeof Locations } = {
 	'eu-central-1': Locations.FRANKFURT,
@@ -13,6 +14,8 @@ const RegionKeyToLabel: { [key: string]: keyof typeof Locations } = {
 export const run = async (event: SQSEvent) => {
 	console.log(`Processing records: ${JSON.stringify(event.Records)}`);
 	const promises: Promise<any>[] = [];
+	const taskServiceClient = await getTaskServiceClient();
+	const timeScaleClient = await getTimeSeriesClient();
 	for (const record of event.Records) {
 		try {
 			var task: HealthCheck = JSON.parse(record.body);
@@ -23,7 +26,7 @@ export const run = async (event: SQSEvent) => {
 
 			if (task.type === 'HTTP') {
 				promises.push(
-					checkHTTP(task, location)
+					checkHTTP(timeScaleClient, taskServiceClient, task, location)
 						.then(() => console.log(`- Processing Ended for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -`))
 						.catch((e) => console.error(`- Error occured for SQS msg ID: ${record.messageId}, Task ID: ${task.id} -\n`, 'Error: ', e))
 				);
@@ -34,7 +37,10 @@ export const run = async (event: SQSEvent) => {
 		}
 	}
 
-	await Promise.all(promises);
+	await Promise.all(promises).finally(() => {
+		taskServiceClient.end();
+		timeScaleClient.end();
+	});
 };
 
 const getRequest = async (task: HealthCheck) => {

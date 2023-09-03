@@ -24,9 +24,12 @@ provider:
     POSTGRES_PASSWORD: '02hkM2EpHYFeBvZCkvea'
     POSTGRES_HOST: 'wards-prod.c1kcykenvknf.eu-central-1.rds.amazonaws.com'
     ACTIVE_PROFILE: 'production'
+    ACCESS_KEY_ID: "AKIAVUHZY32GABKXCHVY"
+    ACCESS_KEY: "8gYrMogrU9sQPsYxZdbgMLV1RroXYnLW1Pnu1tXC"
 
 functions:
   producer:
+    timeout: 120
     handler: src/functions/processHealthMetric.run
     events:
       - sqs:
